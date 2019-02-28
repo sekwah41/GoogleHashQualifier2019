@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -129,6 +130,7 @@ public class Problem {
 
     chains = new ArrayList<>();
     // First Pass
+    long loss;
     for (acceptableLoss = 0; acceptableLoss < 16; acceptableLoss++) {
       while (slides.size() > 0) {
         Slide slide = slides.get(0);
@@ -136,11 +138,9 @@ public class Problem {
         boolean foundChain = false;
         for (Iterator<Slide> iterator = slides.iterator(); iterator.hasNext(); ) {
           Slide successor = iterator.next();
-          int maxScore = Math.max(slide.maxScore(), successor.maxScore());
-          int potentialScore = computeScore(slide.getTags(), successor.getTags());
-          int loss = potentialScore - maxScore;
-          System.out.println(
-              String.format("MaxScore %d Score %d Loss %d", maxScore, potentialScore, loss));
+          loss = getLoss(slide, successor);
+          // System.out.println(
+          //    String.format("MaxScore %d Score %d Loss %d", maxScore, potentialScore, loss));
           if (loss <= acceptableLoss) {
             List<Slide> chain = new ArrayList<>();
             chain.add(slide);
@@ -156,7 +156,59 @@ public class Problem {
         }
       }
     }
-    System.out.println(chains);
+
+    for (acceptableLoss = 0; acceptableLoss < 16; acceptableLoss++) {
+      while (chains.size() > 1) {
+        List<Slide> chain = chains.get(0);
+        chains.remove(0);
+        boolean foundChain = false;
+        for (Iterator<List<Slide>> iterator = chains.iterator(); iterator.hasNext(); ) {
+          List<Slide> successorChain = iterator.next();
+          long headHeadLoss = getLoss(chain.get(0), successorChain.get(0));
+          long tailHeadLoss = getLoss(chain.get(chain.size() - 1), successorChain.get(0));
+          long headTailLoss = getLoss(chain.get(0), successorChain.get(successorChain.size() - 1));
+          long tailTailLoss = getLoss(chain.get(chain.size() - 1),
+              successorChain.get(successorChain.size() - 1));
+
+          long lowestLoss =
+              Math.min(Math.min(headHeadLoss, tailHeadLoss), Math.min(headTailLoss, tailTailLoss));
+          if (lowestLoss < acceptableLoss) {
+            if (lowestLoss == headHeadLoss) {
+              Collections.reverse(chain);
+              chain.addAll(successorChain);
+              iterator.remove();
+              chains.add(chain);
+              foundChain = true;
+              break;
+            } else if (lowestLoss == tailHeadLoss) {
+              chain.addAll(successorChain);
+              iterator.remove();
+              chains.add(chain);
+              foundChain = true;
+              break;
+            } else if (lowestLoss == headTailLoss) {
+              successorChain.addAll(chain);
+              iterator.remove();
+              chains.add(successorChain);
+              foundChain = true;
+              break;
+            } else {
+              Collections.reverse(chain);
+              successorChain.addAll(chain);
+              iterator.remove();
+              chains.add(successorChain);
+              foundChain = true;
+              break;
+            }
+          }
+        }
+        if (!foundChain) {
+          chains.add(chain);
+        }
+      }
+    }
+
+    System.out.println(chains.size());
     return null;
   }
 
@@ -164,5 +216,12 @@ public class Problem {
     Optional<Long> uniqueness =
         image.getTags().stream().map(s -> tagFrequency.get(s)).reduce(Long::sum);
     return uniqueness.orElse(0l);
+  }
+
+  private long getLoss(Slide slide, Slide successor) {
+    int maxScore = Math.max(slide.maxScore(), successor.maxScore());
+    int potentialScore = computeScore(slide.getTags(), successor.getTags());
+    int loss = potentialScore - maxScore;
+    return loss;
   }
 }
