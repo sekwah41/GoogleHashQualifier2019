@@ -25,5 +25,5 @@ public class Photo {
     public char getType(){ return this.type;}
 
     public ArrayList<String> getTags(){ return this.tags; }
-
+    
 }
