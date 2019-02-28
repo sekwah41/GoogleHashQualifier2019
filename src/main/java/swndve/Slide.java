@@ -1,68 +1,38 @@
 package swndve;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 public class Slide {
 
-  private final SortedSet<String> tags;
-  private final List<Image> images;
+  public ArrayList<String> tagsTotal;
+  public ArrayList<Photo> photos;
 
-  public Slide(List<Image> images) {
-    this.images = images;
-    switch (images.size()) {
-      case 1:
-        if (images.stream().allMatch(Image::isHorizontal)) {
-          throw new IllegalArgumentException("Single image slides should be horizontal.");
+  public Slide(ArrayList<Photo> photos) throws Exception {
+    if (photos.size() == 2) {
+      for (Photo p : photos) {
+        if (p.getType() == 'H') {
+          System.out.println("Invalid photo combination");
+          throw new Exception();
         }
-        break;
-      case 2:
-        if (images.stream().allMatch(Image::isVertical)) {
-          throw new IllegalArgumentException("Multi image slides should be vertical.");
-        }
-        break;
-      default:
-        throw new IllegalArgumentException("Slides must have one or two images.");
-    }
-
-
-    this.tags = new TreeSet<>();
-    for (Image image : images) {
-      tags.addAll(image.getTags());
+      }
+      this.photos = photos;
+    } else if (photos.size() == 1) {
+      if (photos.get(0).getType() == 'V') {
+        System.out.println("Invalid photo combination");
+        throw new Exception();
+      }
+      this.photos = photos;
     }
   }
 
-  public SortedSet<String> getTags() {
-    return tags;
-  }
-
-  public List<Image> getImages() {
-    return images;
-  }
-
-  public static int computeScore(Set<String> set1, Set<String> set2) {
-    Set<String> union = new HashSet<>(set1);
-    union.addAll(set2);
-
-    Set<String> intersection = new HashSet<>(set1);
-    intersection.retainAll(set2);
-
-    Set<String> differenceS1 = new HashSet<>(set1);
-    differenceS1.removeAll(set2);
-
-    Set<String> differenceS2 = new HashSet<>(set2);
-    differenceS2.removeAll(set1);
-
-    return (Math.min(intersection.size(), Math.min(differenceS1.size(), differenceS2.size())));
-  }
-
-  @Override
-  public String toString() {
-    return images.stream().map(image -> Integer.toString(image.getId()))
-        .collect(Collectors.joining(" "));
+  public void calcTags() {
+    ArrayList<String> uniqueTags = new ArrayList<>();
+    for (Photo p : photos) {
+      for (String t : p.getTags()) {
+        if (!uniqueTags.contains(t)) {
+          uniqueTags.add(t);
+        }
+      }
+    }
   }
 }
