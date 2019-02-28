@@ -1,11 +1,19 @@
 package swndve;
 
-import static java.util.logging.Level.INFO;
-
 import com.google.common.base.Stopwatch;
-
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.logging.Logger;
@@ -20,6 +28,8 @@ public class Problem {
   private List<Image> images;
   private SortedSet<String> tags;
   private Map<String, Long> tagFrequency;
+
+  private List<List<Slide>> chains;
 
   public Problem() {}
 
@@ -40,19 +50,37 @@ public class Problem {
         images.add(image);
       }
 
-      Map<String, Long> tagFrequency = images.stream().flatMap(image -> image.getTags().stream())
-          .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+      Map<String, Long> tagFrequency =
+          images.stream()
+              .flatMap(image -> image.getTags().stream())
+              .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
-      LinkedHashMap<String, Long> list = tagFrequency.entrySet().stream().sorted(Map.Entry.comparingByValue()).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
-              LinkedHashMap::new));
+      LinkedHashMap<String, Long> list =
+          tagFrequency.entrySet().stream()
+              .sorted(Map.Entry.comparingByValue())
+              .collect(
+                  Collectors.toMap(
+                      Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2, LinkedHashMap::new));
 
       System.out.println(list);
 
-      System.out.printf("Problem created in %d seconds with arguments: Images %d %n",
-              problemStopwatch.elapsed(TimeUnit.SECONDS), imageCount);
+      System.out.printf(
+          "Problem created in %d seconds with arguments: Images %d %n",
+          problemStopwatch.elapsed(TimeUnit.SECONDS), imageCount);
     } catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  public List<Slide> solve() {
+
+    List<Image> verticalImages =
+        images.stream().filter(Image::isVertical).collect(Collectors.toList());
+
+    List<Image> horizontalImages = images.stream().filter(Image::isHorizontal)
+        .sorted(Comparator.comparingLong(this::getUniqueFactor)).collect(Collectors.toList());
+    horizontalImages.stream().map(image -> new Slide(image));
+    return null;
   }
 
   public void output(ArrayList<Slide> slides, String fileName) {
@@ -74,5 +102,11 @@ public class Problem {
       System.out.println("Write Error");
       e.printStackTrace();
     }
+  }
+
+  private long getUniqueFactor(Image image) {
+    Optional<Long> uniqueness = image.getTags().stream().map(s -> tagFrequency.get(s))
+        .reduce(Long::sum);
+    return uniqueness.orElse(0l);
   }
 }
