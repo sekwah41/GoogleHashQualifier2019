@@ -8,10 +8,13 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class Problem {
 
@@ -21,6 +24,7 @@ public class Problem {
   private int imageCount;
   private List<Image> images;
   private SortedSet<String> tags;
+  private Map<String, Long> tagFrequency;
 
   public Problem() {
   }
@@ -41,6 +45,9 @@ public class Problem {
         tags.addAll(image.getTags());
         images.add(image);
       }
+
+      Map<String, Long> tagFrequency = images.stream().flatMap(image -> image.getTags().stream())
+          .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
       LOGGER.log(
           INFO,
