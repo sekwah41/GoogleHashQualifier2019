@@ -74,11 +74,15 @@ public class Problem {
       e.printStackTrace();
     }
   }
+
+
+
+
   
-  public int computeChainScore(ArrayList<Slide> slides){
+  public int computeChainScore(List<Slide> slides){
     int score = 0;
     for(int i = 0; i < slides.size(); i++){
-      score += Slide.computeScore(slides.get(i).getTags(), slides.get(i).getTags());
+      score += computeScore(slides.get(i).getTags(), slides.get(i).getTags());
     }
     System.out.println("Score: "+score);
     return score;
@@ -100,17 +104,20 @@ public class Problem {
     return (Math.min(intersection.size(), Math.min(differenceS1.size(), differenceS2.size())));
   }
 
-  public void output(ArrayList<Slide> slides, String fileName) {
+  public void output(List<Slide> slides, String fileName) {
     computeChainScore(slides);
     ArrayList<String> lines = new ArrayList<>();
     for (int i = 0; i < slides.size() + 1; i++) {
       if (i == 0) {
         String l = Integer.toString(slides.size());
         lines.add(l);
+        System.out.println(l);
       } else {
-        lines.add(slides.get(i).toString());
+        lines.add(slides.get(i-1).toString());
       }
     }
+
+
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
       for (String s : lines) {
         writer.write(s);
@@ -123,7 +130,7 @@ public class Problem {
   }
 
   public List<Slide> solve() {
-
+    chains = new ArrayList<>();
     List<Image> verticalImages =
         images.stream().filter(Image::isVertical).collect(Collectors.toList());
 
@@ -156,10 +163,13 @@ public class Problem {
         }
       }
     }
-
-
-
-    return null;
+    List<Slide> ls = new ArrayList<>();
+    System.out.println(chains);
+    for(List<Slide> s: chains){
+      ls.addAll(s);
+    }
+    ls.addAll(slides);
+    return ls;
   }
 
   private long getUniqueFactor(Image image) {

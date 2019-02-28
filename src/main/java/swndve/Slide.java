@@ -46,6 +46,15 @@ public class Slide {
     return tags;
   }
 
+  public String toString() {
+    if(this.images.size() == 1) {
+      return this.images.get(0).getId() + "";
+    }
+    else {
+      return this.images.get(0).getId() + " " + this.images.get(1).getId();
+    }
+  }
+
   public List<Image> getImages() {
     return images;
   }
