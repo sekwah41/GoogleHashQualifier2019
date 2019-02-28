@@ -8,10 +8,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +33,7 @@ public class Problem {
   private Map<String, Long> tagFrequency;
 
   private List<List<Slide>> chains;
+  private int acceptableLoss = 0;
 
   public Problem() {}
 
@@ -50,19 +54,18 @@ public class Problem {
         images.add(image);
       }
 
-      Map<String, Long> tagFrequency =
+      tagFrequency =
           images.stream()
               .flatMap(image -> image.getTags().stream())
               .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
-      LinkedHashMap<String, Long> list =
+      tagFrequency =
           tagFrequency.entrySet().stream()
               .sorted(Map.Entry.comparingByValue())
               .collect(
                   Collectors.toMap(
                       Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2, LinkedHashMap::new));
 
-      System.out.println(list);
 
       System.out.printf(
           "Problem created in %d seconds with arguments: Images %d %n",
@@ -72,15 +75,20 @@ public class Problem {
     }
   }
 
-  public List<Slide> solve() {
+  public static int computeScore(Set<String> set1, Set<String> set2) {
+    Set<String> union = new HashSet<>(set1);
+    union.addAll(set2);
 
-    List<Image> verticalImages =
-        images.stream().filter(Image::isVertical).collect(Collectors.toList());
+    Set<String> intersection = new HashSet<>(set1);
+    intersection.retainAll(set2);
 
-    List<Image> horizontalImages = images.stream().filter(Image::isHorizontal)
-        .sorted(Comparator.comparingLong(this::getUniqueFactor)).collect(Collectors.toList());
-    horizontalImages.stream().map(image -> new Slide(image));
-    return null;
+    Set<String> differenceS1 = new HashSet<>(set1);
+    differenceS1.removeAll(set2);
+
+    Set<String> differenceS2 = new HashSet<>(set2);
+    differenceS2.removeAll(set1);
+
+    return (Math.min(intersection.size(), Math.min(differenceS1.size(), differenceS2.size())));
   }
 
   public void output(ArrayList<Slide> slides, String fileName) {
@@ -104,9 +112,49 @@ public class Problem {
     }
   }
 
+  public List<Slide> solve() {
+
+    List<Image> verticalImages =
+        images.stream().filter(Image::isVertical).collect(Collectors.toList());
+
+    List<Image> horizontalImages =
+        images.stream()
+            .filter(Image::isHorizontal)
+            .sorted(Comparator.comparingLong(this::getUniqueFactor))
+            .collect(Collectors.toList());
+    List<Slide> slides =
+        horizontalImages.stream()
+            .map(image -> new Slide(image))
+            .sorted(Comparator.comparingInt(Slide::maxScore))
+            .collect(Collectors.toList());
+
+    //First Pass
+    for (Iterator<Slide> iterator = slides.iterator(); iterator.hasNext(); ) {
+      Slide slide = iterator.next();
+      iterator.remove();
+      for (Iterator<Slide> successorIterator = slides.iterator(); iterator.hasNext(); ) {
+        Slide successor = iterator.next();
+        int maxScore = Math.max(slide.maxScore(), successor.maxScore());
+        int potentialScore = computeScore(slide.getTags(), successor.getTags());
+        int percentageLoss = potentialScore / maxScore;
+        if (percentageLoss < acceptableLoss) {
+          iterator.remove();
+          List<Slide> chain = new ArrayList<>();
+          chain.add(slide);
+          chain.add(successor);
+          chains.add(chain);
+        }
+      }
+    }
+
+
+
+    return null;
+  }
+
   private long getUniqueFactor(Image image) {
-    Optional<Long> uniqueness = image.getTags().stream().map(s -> tagFrequency.get(s))
-        .reduce(Long::sum);
+    Optional<Long> uniqueness =
+        image.getTags().stream().map(s -> tagFrequency.get(s)).reduce(Long::sum);
     return uniqueness.orElse(0l);
   }
 }
