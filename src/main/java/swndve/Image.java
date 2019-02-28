@@ -1,11 +1,8 @@
 package swndve;
 
-import static java.util.logging.Level.FINE;
-
 import java.util.Arrays;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.logging.Logger;
 
 public class Image {
 
@@ -46,4 +43,6 @@ public class Image {
   public SortedSet<String> getTags() {
     return tags;
   }
+
+
 }
