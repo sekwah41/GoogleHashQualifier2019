@@ -9,8 +9,6 @@ import java.util.logging.Logger;
 
 public class Image {
 
-  private static final Logger LOGGER = Logger.getLogger(Image.class.getName());
-
   private final int id;
   private final boolean isVertical;
   private final SortedSet<String> tags;
@@ -19,8 +17,7 @@ public class Image {
     this.id = id;
     this.isVertical = isVertical;
     this.tags = tags;
-    LOGGER.log(
-        FINE, String.format("Created Image: %d Tags: %s ", id, Arrays.toString(tags.toArray())));
+    //System.out.printf("Created Image: %d Tags: %s ", id, Arrays.toString(tags.toArray()));
   }
 
   static Image fromString(int id, String string) {
