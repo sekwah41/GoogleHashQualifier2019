@@ -66,7 +66,6 @@ public class Problem {
                   Collectors.toMap(
                       Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2, LinkedHashMap::new));
 
-
       System.out.printf(
           "Problem created in %d seconds with arguments: Images %d %n",
           problemStopwatch.elapsed(TimeUnit.SECONDS), imageCount);
@@ -128,27 +127,36 @@ public class Problem {
             .sorted(Comparator.comparingInt(Slide::maxScore))
             .collect(Collectors.toList());
 
-    //First Pass
-    for (Iterator<Slide> iterator = slides.iterator(); iterator.hasNext(); ) {
-      Slide slide = iterator.next();
-      iterator.remove();
-      for (Iterator<Slide> successorIterator = slides.iterator(); iterator.hasNext(); ) {
-        Slide successor = iterator.next();
-        int maxScore = Math.max(slide.maxScore(), successor.maxScore());
-        int potentialScore = computeScore(slide.getTags(), successor.getTags());
-        int percentageLoss = potentialScore / maxScore;
-        if (percentageLoss < acceptableLoss) {
-          iterator.remove();
-          List<Slide> chain = new ArrayList<>();
-          chain.add(slide);
-          chain.add(successor);
-          chains.add(chain);
+    chains = new ArrayList<>();
+    // First Pass
+    for (acceptableLoss = 0; acceptableLoss < 16; acceptableLoss++) {
+      while (slides.size() > 0) {
+        Slide slide = slides.get(0);
+        slides.remove(0);
+        boolean foundChain = false;
+        for (Iterator<Slide> iterator = slides.iterator(); iterator.hasNext(); ) {
+          Slide successor = iterator.next();
+          int maxScore = Math.max(slide.maxScore(), successor.maxScore());
+          int potentialScore = computeScore(slide.getTags(), successor.getTags());
+          int loss = potentialScore - maxScore;
+          System.out.println(
+              String.format("MaxScore %d Score %d Loss %d", maxScore, potentialScore, loss));
+          if (loss <= acceptableLoss) {
+            List<Slide> chain = new ArrayList<>();
+            chain.add(slide);
+            chain.add(successor);
+            chains.add(chain);
+            iterator.remove();
+            foundChain = true;
+            break;
+          }
+        }
+        if (!foundChain) {
+          slides.add(slide);
         }
       }
     }
-
-
-
+    System.out.println(chains);
     return null;
   }
 

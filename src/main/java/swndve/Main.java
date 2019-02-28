@@ -7,7 +7,8 @@ public class Main {
 
   private static final Stopwatch mainStopwatch = Stopwatch.createUnstarted();
   private static final String[] INPUT_FILES = {
-      "a_example.txt"/*, "b_lovely_landscapes.txt", "c_memorable_moments.txt", "d_pet_pictures.txt"*/
+      "a_example.txt", "b_lovely_landscapes.txt",
+/* "c_memorable_moments.txt", "d_pet_pictures.txt"*/
   };
 
   /*private static final String[] INPUT_FILES = {
