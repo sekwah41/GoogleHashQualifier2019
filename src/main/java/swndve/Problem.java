@@ -74,6 +74,15 @@ public class Problem {
       e.printStackTrace();
     }
   }
+  
+  public int computeChainScore(ArrayList<Slide> slides){
+    int score = 0;
+    for(int i = 0; i < slides.size(); i++){
+      score += Slide.computeScore(slides.get(i).getTags(), slides.get(i).getTags());
+    }
+    System.out.println("Score: "+score);
+    return score;
+  }
 
   public static int computeScore(Set<String> set1, Set<String> set2) {
     Set<String> union = new HashSet<>(set1);
@@ -92,6 +101,7 @@ public class Problem {
   }
 
   public void output(ArrayList<Slide> slides, String fileName) {
+    computeChainScore(slides);
     ArrayList<String> lines = new ArrayList<>();
     for (int i = 0; i < slides.size() + 1; i++) {
       if (i == 0) {
