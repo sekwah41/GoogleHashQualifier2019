@@ -1,10 +1,7 @@
 package swndve;
 
-import static java.util.logging.Level.INFO;
-
 import com.google.common.base.Stopwatch;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 public class Main {
 
@@ -24,6 +21,7 @@ public class Main {
       mainStopwatch.reset().start();
       System.out.printf("Processing File: %s%n", fileName);
       Problem problem = new Problem(fileName);
+      problem.solve();
       System.out.printf(
               "Processed File: %s in %d seconds%n",
               fileName, mainStopwatch.elapsed(TimeUnit.SECONDS));
