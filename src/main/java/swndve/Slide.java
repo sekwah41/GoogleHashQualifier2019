@@ -1,38 +1,40 @@
 package swndve;
 
-import java.util.ArrayList;
+import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class Slide {
 
-  public ArrayList<String> tagsTotal;
-  public ArrayList<Photo> photos;
+  private final SortedSet<String> tags;
+  private final List<Image> images;
 
-  public Slide(ArrayList<Photo> photos) throws Exception {
-    if (photos.size() == 2) {
-      for (Photo p : photos) {
-        if (p.getType() == 'H') {
-          System.out.println("Invalid photo combination");
-          throw new Exception();
+  public Slide(List<Image> images) throws Exception {
+    this.images = images;
+    if (images.size() == 2) {
+      for (Image p : images) {
+        if (!p.isVertical()) {
+          throw new Exception("Invalid image combination");
         }
       }
-      this.photos = photos;
-    } else if (photos.size() == 1) {
-      if (photos.get(0).getType() == 'V') {
-        System.out.println("Invalid photo combination");
-        throw new Exception();
+
+    } else if (images.size() == 1) {
+      if (images.get(0).isVertical()) {
+        throw new Exception("Invalid image combination");
       }
-      this.photos = photos;
+    }
+
+    this.tags = new TreeSet<>();
+    for (Image image : images) {
+      tags.addAll(image.getTags());
     }
   }
 
-  public void calcTags() {
-    ArrayList<String> uniqueTags = new ArrayList<>();
-    for (Photo p : photos) {
-      for (String t : p.getTags()) {
-        if (!uniqueTags.contains(t)) {
-          uniqueTags.add(t);
-        }
-      }
-    }
+  public SortedSet<String> getTags() {
+    return tags;
+  }
+
+  public List<Image> getImages() {
+    return images;
   }
 }
