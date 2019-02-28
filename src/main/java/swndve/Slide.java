@@ -58,4 +58,8 @@ public class Slide {
 
     return (Math.min(intersection.size(), Math.min(differenceS1.size(), differenceS2.size())));
   }
+
+  public int maxScore() {
+    return tags.size() / 2;
+  }
 }
