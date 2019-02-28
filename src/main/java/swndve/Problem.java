@@ -5,11 +5,7 @@ import static java.util.logging.Level.INFO;
 import com.google.common.base.Stopwatch;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.logging.Logger;
@@ -47,11 +43,13 @@ public class Problem {
       Map<String, Long> tagFrequency = images.stream().flatMap(image -> image.getTags().stream())
           .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
-      LOGGER.log(
-          INFO,
-          String.format(
-              "Problem created in %d seconds with arguments: Images %d ",
-              problemStopwatch.elapsed(TimeUnit.SECONDS), imageCount));
+      LinkedHashMap<String, Long> list = tagFrequency.entrySet().stream().sorted(Map.Entry.comparingByValue()).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
+              LinkedHashMap::new));
+
+      System.out.println(list);
+
+      System.out.printf("Problem created in %d seconds with arguments: Images %d %n",
+              problemStopwatch.elapsed(TimeUnit.SECONDS), imageCount);
     } catch (IOException e) {
       e.printStackTrace();
     }
