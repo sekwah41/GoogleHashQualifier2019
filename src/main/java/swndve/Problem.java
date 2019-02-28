@@ -43,4 +43,23 @@ public class Problem {
       e.printStackTrace();
     }
   }
+  
+  public static int compareScore(ArrayList<String> s1, ArrayList<String> s2){
+    int scoreSim = 0;
+    int scoreDiff = 0;
+    for(String r: s1){
+      if(s2.contains(r)){
+        scoreSim++;
+      } 
+      if(!s2.contains(r)){
+        scoreDiff++;
+      }
+    }
+    
+    if(scoreDiff > scoreSim){
+      return scoreSim;
+    } else {
+      return scoreDiff;
+    }
+  }
 }
