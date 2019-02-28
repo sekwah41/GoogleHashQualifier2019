@@ -28,4 +28,12 @@ public class Main {
               fileName, mainStopwatch.elapsed(TimeUnit.SECONDS)));
     }
   }
+
+  public int[] convertToInt(String[] array) {
+    int[] intArray = new int[array.length];
+    for (int i = 0; i < array.length; i++) {
+      intArray[i] = Integer.parseInt(array[i]);
+    }
+    return intArray;
+  }
 }
