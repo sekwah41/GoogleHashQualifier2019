@@ -1,5 +1,6 @@
 package swndve;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -8,8 +9,8 @@ import java.util.TreeSet;
 
 public class Slide {
 
-  private final SortedSet<String> tags;
-  private final List<Image> images;
+  private SortedSet<String> tags;
+  private List<Image> images;
 
   public Slide(List<Image> images) {
     this.images = images;
@@ -27,11 +28,19 @@ public class Slide {
       default:
         throw new IllegalArgumentException("Slides must have one or two images.");
     }
-
-
     this.tags = new TreeSet<>();
     for (Image image : images) {
       tags.addAll(image.getTags());
+    }
+  }
+
+  public Slide(Image image) {
+    this.images = new ArrayList<>();
+    images.add(image);
+
+    this.tags = new TreeSet<>();
+    for (Image img : images) {
+      tags.addAll(img.getTags());
     }
   }
 
