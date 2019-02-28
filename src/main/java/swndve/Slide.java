@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 public class Slide {
 
@@ -57,5 +58,11 @@ public class Slide {
     differenceS2.removeAll(set1);
 
     return (Math.min(intersection.size(), Math.min(differenceS1.size(), differenceS2.size())));
+  }
+
+  @Override
+  public String toString() {
+    return images.stream().map(image -> Integer.toString(image.getId()))
+        .collect(Collectors.joining(" "));
   }
 }
