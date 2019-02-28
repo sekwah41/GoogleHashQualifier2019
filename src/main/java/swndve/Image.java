@@ -42,10 +42,6 @@ public class Image {
     return isVertical;
   }
 
-  public boolean isHorizontal() {
-    return !isVertical;
-  }
-
   public SortedSet<String> getTags() {
     return tags;
   }
