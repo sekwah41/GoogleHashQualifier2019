@@ -74,13 +74,13 @@ public class Problem {
       e.printStackTrace();
     }
   }
-  
-  public int computeChainScore(ArrayList<Slide> slides){
+
+  public int computeChainScore(ArrayList<Slide> slides) {
     int score = 0;
-    for(int i = 0; i < slides.size(); i++){
-      score += Slide.computeScore(slides.get(i).getTags(), slides.get(i).getTags());
+    for (int i = 0; i < slides.size(); i++) {
+      score += computeScore(slides.get(i).getTags(), slides.get(i).getTags());
     }
-    System.out.println("Score: "+score);
+    System.out.println("Score: " + score);
     return score;
   }
 
@@ -123,7 +123,6 @@ public class Problem {
   }
 
   public List<Slide> solve() {
-
     List<Image> verticalImages =
         images.stream().filter(Image::isVertical).collect(Collectors.toList());
 
@@ -141,83 +140,93 @@ public class Problem {
     chains = new ArrayList<>();
     // First Pass
     long loss;
-    for (acceptableLoss = 0; acceptableLoss < 16; acceptableLoss++) {
-      while (slides.size() > 0) {
-        Slide slide = slides.get(0);
-        slides.remove(0);
-        boolean foundChain = false;
-        for (Iterator<Slide> iterator = slides.iterator(); iterator.hasNext(); ) {
-          Slide successor = iterator.next();
-          loss = getLoss(slide, successor);
-          // System.out.println(
-          //    String.format("MaxScore %d Score %d Loss %d", maxScore, potentialScore, loss));
-          if (loss <= acceptableLoss) {
-            List<Slide> chain = new ArrayList<>();
-            chain.add(slide);
-            chain.add(successor);
-            chains.add(chain);
+    acceptableLoss++;
+    while (slides.size() > 0) {
+      Slide slide = slides.get(0);
+      slides.remove(0);
+      boolean foundChain = false;
+      for (Iterator<Slide> iterator = slides.iterator(); iterator.hasNext(); ) {
+        Slide successor = iterator.next();
+        loss = getLoss(slide, successor);
+        // System.out.println(
+        //    String.format("MaxScore %d Score %d Loss %d", maxScore, potentialScore, loss));
+        if (loss <= acceptableLoss) {
+          List<Slide> chain = new ArrayList<>();
+          chain.add(slide);
+          chain.add(successor);
+          chains.add(chain);
+          iterator.remove();
+          foundChain = true;
+          break;
+        }
+      }
+      if (!foundChain) {
+        slides.add(slide);
+      }
+    }
+
+    acceptableLoss = 0;
+    while (chains.size() > 1) {
+      acceptableLoss++;
+      List<Slide> chain = chains.get(0);
+      chains.remove(0);
+      boolean foundChain = false;
+      for (Iterator<List<Slide>> iterator = chains.iterator(); iterator.hasNext(); ) {
+        List<Slide> successorChain = iterator.next();
+        long headHeadLoss = getLoss(chain.get(0), successorChain.get(0));
+        long tailHeadLoss = getLoss(chain.get(chain.size() - 1), successorChain.get(0));
+        long headTailLoss = getLoss(chain.get(0), successorChain.get(successorChain.size() - 1));
+        long tailTailLoss =
+            getLoss(chain.get(chain.size() - 1), successorChain.get(successorChain.size() - 1));
+        long lowestLoss =
+            Math.min(Math.min(headHeadLoss, tailHeadLoss), Math.min(headTailLoss, tailTailLoss));
+        if (lowestLoss < acceptableLoss) {
+          if (lowestLoss == headHeadLoss) {
+            Collections.reverse(chain);
+            chain.addAll(successorChain);
             iterator.remove();
+            chains.add(chain);
+            foundChain = true;
+            break;
+
+          } else if (lowestLoss == tailHeadLoss) {
+            chain.addAll(successorChain);
+            iterator.remove();
+            chains.add(chain);
+            foundChain = true;
+            break;
+          } else if (lowestLoss == headTailLoss) {
+            successorChain.addAll(chain);
+            iterator.remove();
+            chains.add(successorChain);
+            foundChain = true;
+            break;
+          } else {
+            Collections.reverse(chain);
+            successorChain.addAll(chain);
+            iterator.remove();
+            chains.add(successorChain);
             foundChain = true;
             break;
           }
         }
-        if (!foundChain) {
-          slides.add(slide);
-        }
+      }
+      if (!foundChain) {
+        chains.add(chain);
       }
     }
 
-    for (acceptableLoss = 0; acceptableLoss < 16; acceptableLoss++) {
-      while (chains.size() > 1) {
-        List<Slide> chain = chains.get(0);
-        chains.remove(0);
-        boolean foundChain = false;
-        for (Iterator<List<Slide>> iterator = chains.iterator(); iterator.hasNext(); ) {
-          List<Slide> successorChain = iterator.next();
-          long headHeadLoss = getLoss(chain.get(0), successorChain.get(0));
-          long tailHeadLoss = getLoss(chain.get(chain.size() - 1), successorChain.get(0));
-          long headTailLoss = getLoss(chain.get(0), successorChain.get(successorChain.size() - 1));
-          long tailTailLoss = getLoss(chain.get(chain.size() - 1),
-              successorChain.get(successorChain.size() - 1));
-
-          long lowestLoss =
-              Math.min(Math.min(headHeadLoss, tailHeadLoss), Math.min(headTailLoss, tailTailLoss));
-          if (lowestLoss < acceptableLoss) {
-            if (lowestLoss == headHeadLoss) {
-              Collections.reverse(chain);
-              chain.addAll(successorChain);
-              iterator.remove();
-              chains.add(chain);
-              foundChain = true;
-              break;
-            } else if (lowestLoss == tailHeadLoss) {
-              chain.addAll(successorChain);
-              iterator.remove();
-              chains.add(chain);
-              foundChain = true;
-              break;
-            } else if (lowestLoss == headTailLoss) {
-              successorChain.addAll(chain);
-              iterator.remove();
-              chains.add(successorChain);
-              foundChain = true;
-              break;
-            } else {
-              Collections.reverse(chain);
-              successorChain.addAll(chain);
-              iterator.remove();
-              chains.add(successorChain);
-              foundChain = true;
-              break;
-            }
-          }
-        }
-        if (!foundChain) {
-          chains.add(chain);
-        }
+    {
+      List<Slide> chain = chains.get(0);
+      chains.remove(0);
+      boolean foundChain = false;
+      for (Iterator<List<Slide>> iterator = chains.iterator(); iterator.hasNext(); ) {
+        List<Slide> successorChain = iterator.next();
+        Slide slide = VericalLinker.CreateJoiningSlide(verticalImages, chain, successorChain);
+        chain.add(slide);
       }
-    }
 
+    }
     System.out.println(chains.size());
     return null;
   }
